@@ -9,3 +9,4 @@ data_science_udacity
 python_manual.txt
 __pycache__
 .ipynb_checkpoints
+space_image_classification/best_model.pt
