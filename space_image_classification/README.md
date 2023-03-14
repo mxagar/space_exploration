@@ -4,16 +4,16 @@ This mini-project analyzes and models the images contained in the Kaggle dataset
 
 The notebook [`space_image_analysis.ipynb`](./space_image_analysis.ipynb) has the fllowing sections:
 
-- 1. Introduction: Explore the Dataset
-- 2. Data Loaders
-- 3. Model Definition
-  - 3.1 Simple CNN
-  - 3.2 Loss Function and Optimizer
-  - 3.3 Persistence/Loading Functions
-- 4. Training
-  - 4.1 Visualize Training Results
-- 5. Evaluate
-- 6. Inference Functions
+1. Introduction: Explore the Dataset
+2. Data Loaders
+3. Model Definition
+   - 3.1 Simple CNN
+   - 3.2 Loss Function and Optimizer
+   - 3.3 Persistence/Loading Functions
+4. Training
+   - 4.1 Visualize Training Results
+5. Evaluate
+6. Inference Functions
 
 The dataset has 5631 images of 4 classes distributed as follows:
 
