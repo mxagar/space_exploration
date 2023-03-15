@@ -2,8 +2,18 @@
 
 This document contains a guide on how to visualize and work with geospatial data, based on two courses from Datacamp:
 
-- [Visualizing Geospatial Data in Python](https://app.datacamp.com/learn/courses/visualizing-geospatial-data-in-python)
 - [Working with Geospatial Data in Python](https://app.datacamp.com/learn/courses/working-with-geospatial-data-in-python)
+- [Visualizing Geospatial Data in Python](https://app.datacamp.com/learn/courses/visualizing-geospatial-data-in-python)
+
+The datasets used during the courses are in these folders:
+
+- [`../data/visualize_geodata`](../data/visualize_geodata)
+- [`../data/work_geodata`](../data/work_geodata)
+
+Additionally, 
+
+- some exercises/tests tried on my own are located in [`lab`](./lab)
+- and the slides (not committed) are in [`slides`](./slides).
 
 Mikel Sagardia, 2023.  
 No guarantees.
@@ -261,12 +271,24 @@ Spatial joins are done with `gpd.sjoin()`, which requires an operation, `op`:
 - `'intersects'`: all points/data which intersect both dataframes are returned.
 - `'contains'`: data contained in the first/left dataframe
 - `'within'`: data contained in the second/right dataframe
+- If we don't pass an operation, both datasets are shown.
 
 Since in one geometry column can be district polygons and the other schools points, a join can filter points (schools) within polygons (districts). Thus, we're performing geometry operations.
 
 ```python
+# Spatially join art_geo and neighborhoods 
+art_intersect_neighborhoods = gpd.sjoin(art_geo, neighborhoods, op = 'intersects')
 
+# Print the shape property of art_intersect_neighborhoods
+print(art_intersect_neighborhoods.shape)
+# (40, 13)
 ```
+
+![Intersect](./pics/intersect.jpg)
+
+
+![Contains](./pics/contains.jpg)
+
 
 ## 3. GeoSeries and Folium
 
