@@ -201,6 +201,9 @@ plt.show()
 We can add a legend and manipulated its shape:
 
 ```python
+import geopandas as gpd
+import matplotlib.pyplot as plt
+
 # Optional legend manipulation
 leg_kwds={'title':'District Number',
           'loc': 'upper left',
@@ -214,7 +217,7 @@ council_dists.plot(column='district',
 
 plt.title('Council Districts')
 
-plt.show();
+plt.show()
 ```
 
 ### 2.2 Projections and Coordinate Reference Systems
@@ -273,21 +276,48 @@ Spatial joins are done with `gpd.sjoin()`, which requires an operation, `op`:
 - `'within'`: data contained in the second/right dataframe
 - If we don't pass an operation, both datasets are shown.
 
-Since in one geometry column can be district polygons and the other schools points, a join can filter points (schools) within polygons (districts). Thus, we're performing geometry operations.
-
-```python
-# Spatially join art_geo and neighborhoods 
-art_intersect_neighborhoods = gpd.sjoin(art_geo, neighborhoods, op = 'intersects')
-
-# Print the shape property of art_intersect_neighborhoods
-print(art_intersect_neighborhoods.shape)
-# (40, 13)
-```
-
-![Intersect](./pics/intersect.jpg)
+Since in one geometry column can be district polygons and the other schools points, a join can filter points (schools) within polygons (districts). Thus, we're performing geometry operatio![Intersect](./pics/intersect.jpg)
 
 
 ![Contains](./pics/contains.jpg)
+
+```python
+import geopandas as gpd
+
+# Spatially join art_geo and neighborhoods 
+neighborhood_art = gpd.sjoin(art_geo, neighborhoods, op = 'intersects')
+
+# Print the shape property of art_intersect_neighborhoods
+print(neighborhood_art.shape)
+# (40, 13)
+
+# Get name and title from neighborhood_art and group by name
+neighborhood_art_grouped = neighborhood_art[['name', 'title']].groupby('name')
+
+# Aggregate the grouped data and count the artworks within each polygon
+print(neighborhood_art_grouped.agg('count').sort_values(by = 'title', ascending = False))
+#                           title
+# name                           
+# Urban Residents              22
+# Lockeland Springs             3
+# ...
+
+# Create urban_art from neighborhood_art where the neighborhood name is Urban Residents
+urban_art = neighborhood_art.loc[neighborhood_art.name == "Urban Residents"]
+
+# Get just the Urban Residents neighborhood polygon and save it as urban_polygon
+urban_polygon = neighborhoods.loc[neighborhoods.name == "Urban Residents"]
+
+# Plot the urban_polygon as ax 
+ax = urban_polygon.plot(color = 'lightgreen')
+
+# Add a plot of the urban_art and show it
+urban_art.plot(ax = ax, label = 'type', legend = True);
+plt.show()
+```
+
+![Two layer plot](./2_layer_plot.jpg)
+
 
 
 ## 3. GeoSeries and Folium
