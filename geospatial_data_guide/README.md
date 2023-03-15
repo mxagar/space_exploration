@@ -51,6 +51,10 @@ The course focuses on vector data, i.e.,
 
 ![World map: points, lines, polygons](./pics/world_point_line_polygons.jpg)
 
+**IMPORTANT**: This section has an associated notebook where I try the code snippets summarized here:
+
+[`lab/01_Intro_GeoPandas.ipynb`](./lab/01_Intro_GeoPandas.ipynb)
+
 ### 1.1 Plotting: Scatterplots with Background
 
 We can plot points with regular (scatter) plots and we can add background maps with the package [`contextily`](https://contextily.readthedocs.io/en/latest/).
@@ -115,6 +119,12 @@ districts.geometry.area
 # Convert CSV to GeoPandas
 df = pd.read_csv("paris_restaurants.csv")
 restaurants = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.x, df.y))
+
+# Calculate the number of restaurants of each type
+type_counts = restaurants.groupby('type').size()
+
+# Take a subset of the African restaurants
+african_restaurants = restaurants[restaurants['type'] == 'African restaurant']
 ```
 
 ### 1.3 Visualizing Spatial Data
@@ -125,22 +135,41 @@ If we use `.plot()` on a `GeoDataFrame`, the `geometry` column will be plotted, 
 - `column`: we specify the values of which other column should be plotted in the displayed polygons.
 - `cmap`: [color maps](https://matplotlib.org/stable/tutorials/colors/colormaps.html).
 - We can overlay other plot son the plotted polygons (e.g., scatterplots or points) by using the `ax` option.
+- We can add a legend and control it passing a dictionary via `legend_kwds`.
+- We can use any pandas and matplotlib functions, basically.
 
 ```python
+# Add a population density column
+# Watch out: area is in m2, we want to pass it to km2 -> /10^6
+districts['population_density'] = (districts.population / districts.geometry.area) * 10**6
 
+# Make a plot of the districts colored by the population density
+districts.plot(column = 'population_density', cmap = 'Reds', legend=True, figsize=(10, 5))
+
+# Take a subset of the African restaurants
+african_restaurants = restaurants[restaurants['type'] == 'African restaurant']
+
+# Make a multi-layered plot
+fig, ax = plt.subplots(figsize=(10, 10))
+restaurants.plot(ax=ax, color='grey')
+african_restaurants.plot(ax=ax, color='red')
+# Remove the box, ticks and labels
+ax.set_axis_off()
+plt.show()
 ```
 
+## 2. Spatial Relationships
+
+**IMPORTANT**: This section has an associated notebook where I try the code snippets summarized here:
+
+[`lab/02_Spatial_Relationships.ipynb`](./lab/02_Spatial_Relationships.ipynb)
 
 
 
+## 3. Projecting and Transforming Geometries
 
 
-
-
-
-
-
-
+## 4. Case Study: Artisanal Mining Sites
 
 
 ---
@@ -429,9 +458,3 @@ plt.show()
 ```
 
 ![Two layer plot](./pics/2_layer_plot.jpg)
-
-
-
-## 7. GeoSeries and Folium
-
-## 8. Creating a Choropleth Building Permit Density in Nashville
