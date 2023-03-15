@@ -111,7 +111,27 @@ type(districts.geometry) # geopandas.geoseries.GeoSeries
 
 # Area attribute
 districts.geometry.area
+
+# Convert CSV to GeoPandas
+df = pd.read_csv("paris_restaurants.csv")
+restaurants = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.x, df.y))
 ```
+
+### 1.3 Visualizing Spatial Data
+
+If we use `.plot()` on a `GeoDataFrame`, the `geometry` column will be plotted, i.e., the polygons contained in it. We can further control the plots:
+
+- If we pass the `color` attribute, we can specify the color for all geometries.
+- `column`: we specify the values of which other column should be plotted in the displayed polygons.
+- `cmap`: [color maps](https://matplotlib.org/stable/tutorials/colors/colormaps.html).
+- We can overlay other plot son the plotted polygons (e.g., scatterplots or points) by using the `ax` option.
+
+```python
+
+```
+
+
+---
 
 ## 5. Building 2-Layer Maps
 
