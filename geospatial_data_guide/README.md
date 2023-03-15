@@ -22,23 +22,42 @@ No guarantees.
 
 - [Geospatial Data: A Guide](#geospatial-data-a-guide)
   - [Table of Contents](#table-of-contents)
-  - [1. Building 2-Layer Maps](#1-building-2-layer-maps)
-    - [1.1 Scatterplots: Longitude and Latitude](#11-scatterplots-longitude-and-latitude)
-    - [1.2 Geometries and Shapefiles: Geopandas](#12-geometries-and-shapefiles-geopandas)
-    - [1.3 Combining 2 Layers: Geometry Plots and Scatterplots](#13-combining-2-layers-geometry-plots-and-scatterplots)
-  - [2. Creating and Joining GeoDataFrames](#2-creating-and-joining-geodataframes)
-    - [2.1 GeoJSON and Plotting with Geopandas](#21-geojson-and-plotting-with-geopandas)
-    - [2.2 Projections and Coordinate Reference Systems](#22-projections-and-coordinate-reference-systems)
-    - [2.3 Spatial Joins](#23-spatial-joins)
-  - [3. GeoSeries and Folium](#3-geoseries-and-folium)
-  - [4. Creating a Choropleth Building Permit Density in Nashville](#4-creating-a-choropleth-building-permit-density-in-nashville)
+  - [1. Introduction to Geospatial Vector Data](#1-introduction-to-geospatial-vector-data)
+  - [5. Building 2-Layer Maps](#5-building-2-layer-maps)
+    - [5.1 Scatterplots: Longitude and Latitude](#51-scatterplots-longitude-and-latitude)
+    - [5.2 Geometries and Shapefiles: Geopandas](#52-geometries-and-shapefiles-geopandas)
+    - [5.3 Combining 2 Layers: Geometry Plots and Scatterplots](#53-combining-2-layers-geometry-plots-and-scatterplots)
+  - [6. Creating and Joining GeoDataFrames](#6-creating-and-joining-geodataframes)
+    - [6.1 GeoJSON and Plotting with Geopandas](#61-geojson-and-plotting-with-geopandas)
+    - [6.2 Projections and Coordinate Reference Systems](#62-projections-and-coordinate-reference-systems)
+    - [6.3 Spatial Joins](#63-spatial-joins)
+  - [7. GeoSeries and Folium](#7-geoseries-and-folium)
+  - [8. Creating a Choropleth Building Permit Density in Nashville](#8-creating-a-choropleth-building-permit-density-in-nashville)
+
+## 1. Introduction to Geospatial Vector Data
+
+We have mainly two types of geodata:
+
+- Raster: grid with values, e.g., altitude or images (RGB, heat, anything).
+- Vector: points, lines and polygons.
+
+![Raster vs. vector](./pics/raster_vs_vector.jpg)
+
+The course focuses on vector data, i.e.,
+
+- Points: `(x,y)` (e.g., cities on a map).
+- Lines; `[(x,y), (x,y), (x,y), ...]` (e.g., rivers on a map).
+- Polygons (and multipolygons): they close and contain an area (e.g., countries on a map).
+
+![World map: points, lines, polygons](./pics/world_point_line_polygons.jpg)
 
 
-## 1. Building 2-Layer Maps
+
+## 5. Building 2-Layer Maps
 
 In this section scatterplots and shapely geometry plots are combined to build 2-layer map visualizations.
 
-### 1.1 Scatterplots: Longitude and Latitude
+### 5.1 Scatterplots: Longitude and Latitude
 
 Geospatial data comes often in longitude (=x) and latitude (y). These values can be plotted with a scatterplot; example of a scatterplot
 
@@ -73,7 +92,7 @@ df['lng'] = [loc[1] for loc in df.Location]
 print(df.head())
 ```
 
-### 1.2 Geometries and Shapefiles: Geopandas
+### 5.2 Geometries and Shapefiles: Geopandas
 
 We have two important packages to deal with geometries:
 
@@ -121,7 +140,7 @@ plt.show()
 
 ![Geopandas Plot](./pics/geopandas_plot.jpg)
 
-### 1.3 Combining 2 Layers: Geometry Plots and Scatterplots
+### 5.3 Combining 2 Layers: Geometry Plots and Scatterplots
 
 Here, we have two dataframes: `service_district` with geometries, `chickens` with longitude and latitude coordinates. We can overlay the plots.
 
@@ -148,14 +167,14 @@ plt.show()
 
 ![Two-Layer Plot](./pics/two_layer_plot.jpg)
 
-## 2. Creating and Joining GeoDataFrames
+## 6. Creating and Joining GeoDataFrames
 
 Besides Shapely geometry files, we have GeoJSON files, which can be read by Geopandas, too. They have these advantages:
 
 - They integrate everything in a JSON file.
 - They are easier to handle, since JSON is a human readable/friendlier format.
 
-### 2.1 GeoJSON and Plotting with Geopandas
+### 6.1 GeoJSON and Plotting with Geopandas
 
 GeoJSON files con contain the same structures as Shapely files. They can represent maps as
 
@@ -220,7 +239,7 @@ plt.title('Council Districts')
 plt.show()
 ```
 
-### 2.2 Projections and Coordinate Reference Systems
+### 6.2 Projections and Coordinate Reference Systems
 
 To create a geo-dataframe, we need:
 
@@ -265,7 +284,7 @@ print(schools_geo.crs)
 
 ```
 
-### 2.3 Spatial Joins
+### 6.3 Spatial Joins
 
 Spatial joins make possible many geospatial analyses; for instance, if we have two geometry maps of a city, one with neighborhoods/districts and the other with public school points and their regions, we can ask: do they match? which districts have several schools or which schools contain several districts?
 
@@ -276,8 +295,9 @@ Spatial joins are done with `gpd.sjoin()`, which requires an operation, `op`:
 - `'within'`: data contained in the second/right dataframe
 - If we don't pass an operation, both datasets are shown.
 
-Since in one geometry column can be district polygons and the other schools points, a join can filter points (schools) within polygons (districts). Thus, we're performing geometry operatio![Intersect](./pics/intersect.jpg)
+Since in one geometry column can be district polygons and the other schools points, a join can filter points (schools) within polygons (districts). Thus, we're performing geometry operations.
 
+![Intersect](./pics/intersect.jpg)
 
 ![Contains](./pics/contains.jpg)
 
@@ -312,14 +332,14 @@ urban_polygon = neighborhoods.loc[neighborhoods.name == "Urban Residents"]
 ax = urban_polygon.plot(color = 'lightgreen')
 
 # Add a plot of the urban_art and show it
-urban_art.plot(ax = ax, label = 'type', legend = True);
+urban_art.plot(ax = ax, column = 'type', legend = True);
 plt.show()
 ```
 
-![Two layer plot](./2_layer_plot.jpg)
+![Two layer plot](./pics/2_layer_plot.jpg)
 
 
 
-## 3. GeoSeries and Folium
+## 7. GeoSeries and Folium
 
-## 4. Creating a Choropleth Building Permit Density in Nashville
+## 8. Creating a Choropleth Building Permit Density in Nashville
