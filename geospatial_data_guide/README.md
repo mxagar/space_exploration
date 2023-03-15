@@ -131,6 +131,18 @@ If we use `.plot()` on a `GeoDataFrame`, the `geometry` column will be plotted, 
 ```
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 ---
 
 ## 5. Building 2-Layer Maps
