@@ -51,6 +51,28 @@ The course focuses on vector data, i.e.,
 
 ![World map: points, lines, polygons](./pics/world_point_line_polygons.jpg)
 
+### 1.1 Plotting: Scatterplots with Background
+
+```python
+# Import pandas and matplotlib
+import pandas as ps
+import matplotlib.pyplot as plt
+
+# Read the restaurants csv file
+restaurants = pd.read_csv("paris_restaurants.csv")
+
+# Inspect the first rows of restaurants
+print(restaurants.head())
+#                                               type           x          y
+# 0                             Restaurant européen  259641.692  6.252e+06
+# 1                Restaurant traditionnel français  259572.340  6.252e+06
+
+# Make a plot of all points: scatterplot
+fig, ax = plt.subplots()
+ax.plot(restaurants.x, restaurants.y, 'o')
+plt.show()
+```
+
 
 
 ## 5. Building 2-Layer Maps
