@@ -53,6 +53,8 @@ The course focuses on vector data, i.e.,
 
 ### 1.1 Plotting: Scatterplots with Background
 
+We can plot points with regular (scatter) plots and we can add background maps with the package [`contextily`](https://contextily.readthedocs.io/en/latest/).
+
 ```python
 # Import pandas and matplotlib
 import pandas as ps
@@ -71,7 +73,12 @@ print(restaurants.head())
 fig, ax = plt.subplots()
 ax.plot(restaurants.x, restaurants.y, 'o')
 plt.show()
+
+# To add a background map: contextily
+# !pip install contextily
+
 ```
+
 
 
 
