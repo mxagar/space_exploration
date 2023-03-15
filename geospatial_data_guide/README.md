@@ -57,8 +57,9 @@ We can plot points with regular (scatter) plots and we can add background maps w
 
 ```python
 # Import pandas and matplotlib
-import pandas as ps
+import pandas as pd
 import matplotlib.pyplot as plt
+import contextily
 
 # Read the restaurants csv file
 restaurants = pd.read_csv("paris_restaurants.csv")
@@ -76,11 +77,41 @@ plt.show()
 
 # To add a background map: contextily
 # !pip install contextily
-
+# It automatically downloads the tile of the required region
+# But the X & Y or Long & Lat need to be correct
+fig, ax = plt.subplots()
+ax.plot(restaurants.x, restaurants.y, 'o', markersize=1)
+contextily.add_basemap(ax)
+plt.show()
 ```
 
+### 1.2 GeoPandas Basics
 
+GeoPandas is an extension to Pandas which can contain geodata. It has always a `geometry` column, which contains often the polygons of given regions/areas. The rest of the columns are the attributes of the elements that represent those polygons.
 
+Note that:
+
+- The dataframes become of type `GeoDataFrame`. They have special properties and methods, like `plot()`, which nicely plots the geometries.
+- The `geometry` column is of type `GeoSeries`, equivalent to the Pandas `Series`, but for geometrical data; it has several special attributes/properties, like `area`.
+
+```python
+import geopandas as gpd
+
+# Read the Paris districts dataset: GeoPackage file
+districts = gpd.read_file('paris_districts.gpkg')
+
+# Inspect the first rows
+print(districts.head())
+
+# Make a quick visualization of the districts
+districts.plot()
+
+type(districts) # geopandas.geodataframe.GeoDataFrame
+type(districts.geometry) # geopandas.geoseries.GeoSeries
+
+# Area attribute
+districts.geometry.area
+```
 
 ## 5. Building 2-Layer Maps
 
