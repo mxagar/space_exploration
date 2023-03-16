@@ -41,6 +41,7 @@ Installation of the most important packages:
 ```bash
 pip install shapely
 pip install geopandas
+pip install mapclassify # for choropleth plotting with scheme option
 # Or
 conda install shapely --channel conda-forge
 conda install -c conda-forge geopandas
@@ -353,9 +354,49 @@ An important aspect when plotting are color maps, `cmap`, because they help unde
 
 Numerical columns default to continuous sequential color maps, however, it's better to define ranges with the arguments `scheme` and `k`:
 
-- Choose `scheme=quantiles` or `scheme=equal_interval` depending on how we want to define the bins
+- Choose `scheme=quantiles` or `scheme=equal_interval` depending on how we want to define the bins.
 - Choose the number of bins `k` between 3 and 12.
 - Always plot the distribution of the numerical value to see how to best define the bins.
+
+```python
+# Make a choropleth of the number of trees 
+districts_trees.plot(column='n_trees', legend=True)
+plt.show()
+
+# Make a choropleth of the number of trees / area
+districts_trees.plot(column='n_trees_per_area', legend=True)
+
+# Generate the choropleth and store the axis
+ax = districts_trees.plot(column='n_trees_per_area',
+                          scheme='quantiles',
+                          k=7,
+                          cmap='YlGn',
+                          legend=True)
+
+# Remove frames, ticks and tick labels from the axis
+ax.set_axis_off()
+
+# Histogram plots
+import seaborn as sns
+districts_trees['n_trees_per_area'].hist(bins=30)
+sns.histplot(districts_trees['n_trees_per_area'], bins=30, kde=True)
+
+# Set up figure and subplots
+fig, axes = plt.subplots(nrows=2, figsize=(10,10))
+
+# Plot equal interval map
+districts_trees.plot(column='n_trees_per_area', scheme='equal_interval', k=5, legend=True, ax=axes[0])
+axes[0].set_title('Equal Interval')
+axes[0].set_axis_off()
+
+# Plot quantiles map
+districts_trees.plot(column='n_trees_per_area', scheme='quantiles', k=5, legend=True, ax=axes[1])
+axes[1].set_title('Quantiles')
+axes[1].set_axis_off()
+
+# Display maps
+plt.show()
+```
 
 ## 3. Projecting and Transforming Geometries
 
