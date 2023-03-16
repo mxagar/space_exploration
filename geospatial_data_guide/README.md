@@ -2,18 +2,23 @@
 
 This document contains a guide on how to visualize and work with geospatial data, based on two courses from Datacamp:
 
-- [Working with Geospatial Data in Python](https://app.datacamp.com/learn/courses/working-with-geospatial-data-in-python)
-- [Visualizing Geospatial Data in Python](https://app.datacamp.com/learn/courses/visualizing-geospatial-data-in-python)
+- [Working with Geospatial Data in Python](https://app.datacamp.com/learn/courses/working-with-geospatial-data-in-python): :star: :star: :star: :star: __
+- [Visualizing Geospatial Data in Python](https://app.datacamp.com/learn/courses/visualizing-geospatial-data-in-python): :star: :star: __ __ __
 
 The datasets used during the courses are in these folders:
 
 - [`../data/visualize_geodata`](../data/visualize_geodata)
 - [`../data/work_geodata`](../data/work_geodata)
 
-Additionally, 
+Note that 
 
 - some exercises/tests tried on my own are located in [`lab`](./lab)
 - and the slides (not committed) are in [`slides`](./slides).
+
+Finally, here are some interesting websites with datasets for practicing:
+
+- [European Urban Atlas](https://land.copernicus.eu/local/urban-atlas)
+- [US Energy Atlas](https://atlas.eia.gov/)
 
 Mikel Sagardia, 2023.  
 No guarantees.
@@ -22,7 +27,27 @@ No guarantees.
 
 - [Geospatial Data: A Guide](#geospatial-data-a-guide)
   - [Table of Contents](#table-of-contents)
+  - [Installation and Setup](#installation-and-setup)
   - [1. Introduction to Geospatial Vector Data](#1-introduction-to-geospatial-vector-data)
+    - [1.1 Basic Visualization: Scatterplots with Background](#11-basic-visualization-scatterplots-with-background)
+    - [1.2 GeoPandas Basics](#12-geopandas-basics)
+    - [1.3 Visualizing Spatial Data](#13-visualizing-spatial-data)
+  - [2. Spatial Relationships](#2-spatial-relationships)
+    - [2.1. Shapely Geometries and Spatial Relationships](#21-shapely-geometries-and-spatial-relationships)
+    - [2.2 Spatial Joins](#22-spatial-joins)
+      - [Example 1: Add District Name to Bike Stations](#example-1-add-district-name-to-bike-stations)
+      - [Example 2: Make a Map of the Tree Density by District](#example-2-make-a-map-of-the-tree-density-by-district)
+    - [2.3 Choropleths: Mapping Attribute Data to Geometries](#23-choropleths-mapping-attribute-data-to-geometries)
+  - [3. Projecting and Transforming Geometries](#3-projecting-and-transforming-geometries)
+    - [3.1 Coordinate Reference Systems](#31-coordinate-reference-systems)
+      - [Example 1: Transform GeoDataFrame CRS](#example-1-transform-geodataframe-crs)
+      - [Example 2: Create a Point and Transform Its CRS](#example-2-create-a-point-and-transform-its-crs)
+      - [Example 3: Measure Distances between Points and Plot](#example-3-measure-distances-between-points-and-plot)
+    - [3.2 Spatial Operations: Creating New Geometries](#32-spatial-operations-creating-new-geometries)
+      - [Example 1: Plot Dataset](#example-1-plot-dataset)
+      - [Example 2: Intersection](#example-2-intersection)
+    - [3.3 Overlaying Spatial Datasets](#33-overlaying-spatial-datasets)
+  - [4. Case Study: Artisanal Mining Sites](#4-case-study-artisanal-mining-sites)
   - [5. Building 2-Layer Maps](#5-building-2-layer-maps)
     - [5.1 Scatterplots: Longitude and Latitude](#51-scatterplots-longitude-and-latitude)
     - [5.2 Geometries and Shapefiles: Geopandas](#52-geometries-and-shapefiles-geopandas)
@@ -31,8 +56,7 @@ No guarantees.
     - [6.1 GeoJSON and Plotting with Geopandas](#61-geojson-and-plotting-with-geopandas)
     - [6.2 Projections and Coordinate Reference Systems](#62-projections-and-coordinate-reference-systems)
     - [6.3 Spatial Joins](#63-spatial-joins)
-  - [7. GeoSeries and Folium](#7-geoseries-and-folium)
-  - [8. Creating a Choropleth Building Permit Density in Nashville](#8-creating-a-choropleth-building-permit-density-in-nashville)
+
 
 ## Installation and Setup
 
@@ -248,6 +272,20 @@ ax = restaurants_eiffel.plot(figsize=(10,10))
 gpd.GeoSeries([eiffel_tower]).plot(ax=ax, color='red')
 contextily.add_basemap(ax)
 ax.set_axis_off()
+```
+
+Note: to plot a Shapely geometry using geopandas, use `GeoSeries`:
+
+```python
+import geopandas as gpd
+from shapely.geometry import Point
+
+# Create the shapely object, e.g. a point
+eiffel_tower = Point(255422.6, 6250868.9)
+
+# Create a GeoSeries with one Shapely object
+# Obviously, this example doesn't make sense, because we have only a point!
+gpd.GeoSeries([eiffel_tower]).plot()
 ```
 
 ### 2.2 Spatial Joins
@@ -509,6 +547,66 @@ plt.show()
 ```
 
 ### 3.2 Spatial Operations: Creating New Geometries
+
+We can perform spatial operations with the polygons in such a way that we get new polygons; such oprations are:
+
+- `a.intersection.(b)`
+- `a.union.(b)`
+- `a.difference.(b)`
+
+If we apply those operations between two `gpd` tables, we get a `GeoSeeries` with the same number of rows (but one column: `geometry`). Depending on the operation, these geometries can be: the same as before, different (result of the operation, e.g., intersection), or null/empty.
+
+    gdf.intersection(box)
+
+The next examples use a simplified version of Donstia-San Sebastian land use dataset based on the open [European Urban Atlas](https://land.copernicus.eu/local/urban-atlas).  Go to the web, log in, select map/atlas and city, and download it!
+
+#### Example 1: Plot Dataset
+
+```python
+# Import the land use dataset
+DATA_PATH = "../../data/Donostia_Urban_Atlas/Data/"
+land_use = gpd.read_file(DATA_PATH+'ES510L1_DONOSTIA_SAN_SEBASTIAN_UA2018_v013.gpkg')
+
+# Make a plot of the land use with 'class' as the color
+land_use.plot(column='class_2018', legend=True, figsize=(15, 10))
+plt.show()
+
+# Add the area as a new column
+land_use['area'] = land_use.geometry.area
+
+# Calculate the total area for each land use class
+total_area = land_use.groupby('class_2018')['area'].sum() / 1000**2
+print(total_area.sort_values(ascending=False))
+```
+
+#### Example 2: Intersection
+
+```python
+from shapely import Polygon
+from shapely.geometry import box
+
+# I have taken the coordinates which enclose the city center
+# For more information on how to create Shapely objects
+# https://shapely.readthedocs.io/en/stable/manual.html
+center_polygon = box(minx=3347000, miny=2322000, maxx=3357000, maxy=2325000, ccw=True)
+
+# Note that we pass a Shapely object to the geodataframe
+land_use_intersection = land_use.intersection(center_polygon)
+land_use_intersection.plot(figsize=(15,10))
+
+# Note that the intersected object is a GeoSeries
+# which has the same number of rows as the original gdf
+# BUT one column (geometry), and additionally,
+# some rows have NaN/Null value, i.e., those which do not overlap!
+# The new geometries can be: same as before, intersected, or empty.
+# In order to get their attributes we need to perform a join/concat.
+type(land_use_intersection) # geopandas.geoseries.GeoSeries
+
+land_use_intersection.shape # (5976,)
+land_use.shape # (5976, 12)
+```
+
+### 3.3 Overlaying Spatial Datasets
 
 
 
