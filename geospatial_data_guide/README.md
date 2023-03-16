@@ -81,6 +81,8 @@ The course focuses on vector data, i.e.,
 
 We can plot points with regular (scatter) plots and we can add background maps with the package [`contextily`](https://contextily.readthedocs.io/en/latest/).
 
+:warning: Contextily assumes that your data is in the Web Mercator projection, the system used by most web tile services: `EPSG:3857`. See the section [3. Projecting and Transforming Geometries](#3-projecting-and-transforming-geometries) to see how to check and fix that.
+
 ```python
 # Import pandas and matplotlib
 import pandas as pd
@@ -399,6 +401,115 @@ plt.show()
 ```
 
 ## 3. Projecting and Transforming Geometries
+
+This section introduces coordinate reference systems (CRS) and, projections and transformations.
+
+**IMPORTANT**: This section has an associated notebook where I try the code snippets summarized here:
+
+[`lab/03_CRS_Projections_Transformations.ipynb`](./lab/03_CRS_Projections_Transformations.ipynb)
+
+The most common way to express the location on a spot in the world are the **geographic coordinates**, which are expressed in:
+
+- Longitude: `[-180, 180] deg`; related to `x`, starting at the Equator.
+- Latitude: `[-90, 90] deg`; related to `y`, starting at the Greewich meridian.
+
+![Geographic Coordinates](./pics/geographic_coordinates.jpg)
+
+The **geographic coordinates** are a **Coordinate Reference System** or **CRS**, because they set a frame in which we can define points. In practice, there are many CRS, depending on our application, and we apply **projections** to go from one to the other.
+
+For instance, the geographic coordinates are not the best CRS to measure distances between points, thus we need to project the CRS to get `(x, y)` values. One possible projection or CRS is Mercator.
+
+### 3.1 Coordinate Reference Systems
+
+We can get the CRS in which a geodataframe is expressed with `.crs`; some popular CRS are:
+
+- `EPSG:4326` or `WGS84`: geographic coordinates, i.e., longitude & latitude.
+- `EPSG:3857`: Web Mercator, a very common projection, which has units in meters and is used in Google maps and most other apps.
+
+To manipulate different geo-datasets, we need to make sure they're all in the same CRS. Additionally, note that:
+
+- **All CRS projections introduce deformations. Each country/region has a best projection CRS for accurate distance computations**. See:
+  - [https://spatialreference.org](https://spatialreference.org)
+  - [https://epsg.io](https://epsg.io)
+- Any distancce operation in geopandas/shapely expects points described on a cartesian plane. However, CRS manipulation is done only in geopandas, i.e., shapely objects work simply with cartesian floating point values.
+
+#### Example 1: Transform GeoDataFrame CRS
+
+```python
+districts = gpd.read_file(DATA_PATH_PARIS+'paris_districts_utm.geojson')
+
+print(districts.crs)
+# epsg:32631
+
+# If a geodataframe has no CRS, we get {}
+# We can add manually a CRS as follows
+gdf.crs = {'init': 'epsg:4326'}
+
+# We can convert a geodataframe to another CRS as follows
+districts = districts.to_crs(epsg = 3857)
+
+# To make sure we correctly transform two geodataframes to the same CRS
+gdf1 = geopandas.read_file(...)
+gdf2 = geopandas.read_file(...)
+gdf2 = df2.to_crs(gdf1.crs)
+```
+
+#### Example 2: Create a Point and Transform Its CRS
+
+```python
+# Construct a Point object for the Eiffel Tower
+from shapely.geometry import Point
+eiffel_tower = Point(2.2945, 48.8584) # Logitude, Latitude
+
+# Put the point in a GeoSeries with the correct CRS
+s_eiffel_tower = gpd.GeoSeries([eiffel_tower], crs={'init': 'EPSG:4326'})
+
+# Convert to other CRS
+s_eiffel_tower_projected = s_eiffel_tower.to_crs(epsg=2154)
+
+# Print the projected point
+print(s_eiffel_tower_projected)
+```
+
+#### Example 3: Measure Distances between Points and Plot
+
+```python
+restaurants = pd.read_csv(DATA_PATH_PARIS+"paris_restaurants.csv")
+restaurants = gpd.GeoDataFrame(restaurants,
+                               geometry=gpd.points_from_xy(restaurants.x,
+                                                           restaurants.y))
+
+print(restaurants.crs) # None
+# Restaurants are in the Web Mercator CRS
+# Set it manually
+restaurants.crs = {'init': 'epsg:3857'}
+
+# Extract the single Point
+eiffel_tower = s_eiffel_tower_projected[0]
+
+# Ensure the restaurants use the same CRS
+restaurants = restaurants.to_crs(crs=s_eiffel_tower_projected.crs) 
+
+print(f"New CRS: {restaurants.crs}") # New CRS: epsg:2154
+
+# The distance from each restaurant to the Eiffel Tower
+dist_eiffel = restaurants.geometry.distance(eiffel_tower)
+
+# The distance to the closest restaurant
+print(dist_eiffel.min()) # 303.5625538786418
+
+# Contextily requires the Web Mercator CRS
+# Convert to the Web Mercator projection
+restaurants_webmercator = restaurants.to_crs(epsg=3857)
+
+# Plot the restaurants with a background map
+ax = restaurants_webmercator.plot(markersize=1)
+contextily.add_basemap(ax)
+plt.show()
+```
+
+### 3.2 Spatial Operations: Creating New Geometries
+
 
 
 ## 4. Case Study: Artisanal Mining Sites
