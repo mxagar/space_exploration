@@ -181,7 +181,7 @@ plt.show()
 
 ## 2. Spatial Relationships
 
-Geometries are represented by [Shapely](https://shapely.readthedocs.io/en/stable/) objects in the `geometry` column of a `GeoDataFrame` in geopandas; these can be `Point`, `LineString`, `Polygon`, etc.
+Geometries are represented by [Shapely](https://shapely.readthedocs.io/en/stable/) objects in the `geometry` column of a `GeoDataFrame` in geopandas; these can be `Point`, `LineString`, `Polygon`, etc. Thanks to them, we can apply spatial operations.
 
 **IMPORTANT**: This section has an associated notebook where I try the code snippets summarized here:
 
@@ -329,11 +329,33 @@ districts_trees = pd.merge(left=districts,
 districts_trees['n_trees_per_area'] = (districts_trees.n_trees / districts_trees.geometry.area)*10**6
 
 # 6. Make of map of the districts colored by 'n_trees_per_area'
+# Color maps can be controled with cmap: https://matplotlib.org/stable/tutorials/colors/colormaps.html
 districts_trees.plot(column='n_trees_per_area',
                      legend=True,
                      figsize=(7,7))
 
 ```
+
+### 2.3 Choropleths: Mapping Attribute Data to Geometries
+
+From the [Wikipedia](https://en.wikipedia.org/wiki/Choropleth_map):
+
+> A **choropleth** map is a type of statistical thematic map that uses pseudocolor, i.e., color corresponding with an aggregate summary of a geographic characteristic within spatial enumeration units, such as population density or per-capita income.
+
+Recall that a geodataframe has a `geometry` column and the rest of the columns are called *attribute* columns. When we plot a geodataframe, the `geometry` elements are plotted, and if these are polygons, we need to specify which attribute to plot in the `column` argument. The result is a **choropleth**, as the one shown in the previous example.
+
+An important aspect when plotting are color maps, `cmap`, because they help understand the polygons in one way or another: [Choosing Colormaps in Matplotlib](https://matplotlib.org/stable/tutorials/colors/colormaps.html). Color maps can be:
+
+- Qualitative: miscellaneous colors, no ordering, for categorical data.
+- Sequential (graduated): numerical information, with ordering/degree.
+- Diverging (graduated): they start in the middle.
+- Cyclic: start and end with the same color
+
+Numerical columns default to continuous sequential color maps, however, it's better to define ranges with the arguments `scheme` and `k`:
+
+- Choose `scheme=quantiles` or `scheme=equal_interval` depending on how we want to define the bins
+- Choose the number of bins `k` between 3 and 12.
+- Always plot the distribution of the numerical value to see how to best define the bins.
 
 ## 3. Projecting and Transforming Geometries
 
@@ -483,9 +505,9 @@ We'll deal with vector data.
 An important aspect when plotting are color maps, `cmap`, because they help understand the polygons in one way or another: [Choosing Colormaps in Matplotlib](https://matplotlib.org/stable/tutorials/colors/colormaps.html). Color maps can be:
 
 - Qualitative: miscellaneous colors, no ordering, for categorical data.
-- Sequential: numerical information, with ordering/degree.
-- Diverging
-- Cyclic
+- Sequential (graduated): numerical information, with ordering/degree.
+- Diverging (graduated): they start in the middle.
+- Cyclic: start and end with the same color
 
 ```python
 import geopandas as gpd
