@@ -34,6 +34,27 @@ No guarantees.
   - [7. GeoSeries and Folium](#7-geoseries-and-folium)
   - [8. Creating a Choropleth Building Permit Density in Nashville](#8-creating-a-choropleth-building-permit-density-in-nashville)
 
+## Installation and Setup
+
+Installation of the most important packages:
+
+```bash
+pip install shapely
+pip install geopandas
+# Or
+conda install shapely --channel conda-forge
+conda install -c conda-forge geopandas
+```
+
+Additionally, spatial joins require some extra packages:
+
+```bash
+# https://stackoverflow.com/questions/67021748/importerror-spatial-indexes-require-either-rtree-or-pygeos-in-geopanda-but
+pip uninstall rtree
+brew install spatialindex
+pip install rtree
+```
+
 ## 1. Introduction to Geospatial Vector Data
 
 We have mainly two types of geodata:
@@ -55,7 +76,7 @@ The course focuses on vector data, i.e.,
 
 [`lab/01_Intro_GeoPandas.ipynb`](./lab/01_Intro_GeoPandas.ipynb)
 
-### 1.1 Plotting: Scatterplots with Background
+### 1.1 Basic Visualization: Scatterplots with Background
 
 We can plot points with regular (scatter) plots and we can add background maps with the package [`contextily`](https://contextily.readthedocs.io/en/latest/).
 
@@ -160,11 +181,159 @@ plt.show()
 
 ## 2. Spatial Relationships
 
+Geometries are represented by [Shapely](https://shapely.readthedocs.io/en/stable/) objects in the `geometry` column of a `GeoDataFrame` in geopandas; these can be `Point`, `LineString`, `Polygon`, etc.
+
 **IMPORTANT**: This section has an associated notebook where I try the code snippets summarized here:
 
 [`lab/02_Spatial_Relationships.ipynb`](./lab/02_Spatial_Relationships.ipynb)
 
+### 2.1. Shapely Geometries and Spatial Relationships
 
+[Shapely](https://shapely.readthedocs.io/en/stable/) is a package on its own and we can use it to create geometric objects manually, too. Shapely supports many attributes out of the box:
+
+- `obj.area`
+- `obj1.distance(obj2)`
+- `obj1.contains(obj2)`
+- `within()`
+- `touches()`
+- `intersects()`
+- `centroid`
+- ...
+
+Additionally, almost all shapely object functions/attributes have an equivalent in geopandas. That way, we get GeoSeries or series of values. If these are boolean (e.g., the result of applying `contains`), we can use those series as masks in the geodataframes.
+
+```python
+# Import the Point geometry
+from shapely.geometry import Point
+
+# Construct a point object for the Eiffel Tower
+eiffel_tower = Point(255422.6, 6250868.9)
+
+# Print the result
+print(eiffel_tower)
+
+# Accessing the Montparnasse geometry (Polygon) and restaurant
+district_montparnasse = districts.loc[52, 'geometry']
+resto = restaurants.loc[956, 'geometry']
+
+# Is the Eiffel Tower located within the Montparnasse district?
+print(eiffel_tower.within(district_montparnasse))
+
+# Does the Montparnasse district contain the restaurant?
+print(district_montparnasse.contains(resto))
+
+# The distance between the Eiffel Tower and the restaurant?
+print(eiffel_tower.distance(resto))
+
+# Create a boolean Series
+mask = districts.contains(eiffel_tower)
+
+# Filter the districts with the boolean mask
+print(districts[mask])
+
+# The distance from each restaurant to the Eiffel Tower
+dist_eiffel = restaurants.distance(eiffel_tower)
+
+# The distance to the closest restaurant
+print(dist_eiffel.min())
+
+# Filter the restaurants for closer than 1 km
+restaurants_eiffel = restaurants[dist_eiffel<1000]
+
+# Make a plot of the close-by restaurants
+ax = restaurants_eiffel.plot(figsize=(10,10))
+gpd.GeoSeries([eiffel_tower]).plot(ax=ax, color='red')
+contextily.add_basemap(ax)
+ax.set_axis_off()
+```
+
+### 2.2 Spatial Joins
+
+Spatial joins make possible many geospatial analyses; for instance, if we have two geometry maps of a city, one with neighborhoods/districts and the other with public school points and their regions, we can ask: do they match? which districts have several schools or which schools contain several districts?
+
+Spatial joins are done with 
+
+    gpd.sjoin(left_df=gdf1, right_df=gdf2, op=...)
+
+Data from the right dataframe is added to the left one. The operation, `op`, can be:
+
+- `'intersects'`: all points/data which intersect both dataframes are returned.
+- `'contains'`: data contained in the `geometry` of the first/left dataframe.
+- `'within'`: data contained in the `geometry` of the second/right dataframe.
+- If we don't pass an operation, both datasets are shown.
+
+Since in one geometry column can be district polygons and the other schools points, a join can filter points (schools) within polygons (districts). Thus, we're performing geometry operations.
+
+Note that:
+
+- All the specified columns of the left dataframe are returned.
+- All the specified columns of the right dataframe are returned, **except the `geometry` column**. The `geometry` of the right is used for the join, but not added to the joined dataframe. Only the `geometry` of the left appears in the joined dataframe.
+
+#### Example 1: Add District Name to Bike Stations
+
+```python
+districts = gpd.read_file(DATA_PATH_PARIS+'paris_districts_utm.geojson')
+stations = gpd.read_file(DATA_PATH_PARIS+'paris_sharing_bike_stations_utm.geojson')
+
+districts.head()
+# 	  id	district_name	          population	  geometry
+# 0	  1	  St-Germain-l'Auxerrois  1672	        POLYGON ((451922.133 5411438.484, 451922.080 5...
+# ...
+
+stations.head()
+#   name	                  bike_stands	available_bikes	geometry
+# 0	14002 - RASPAIL QUINET  44	        4	              POINT (450804.449 5409797.268)
+# ...
+
+# Add district name where each station is located
+joined = gpd.sjoin(left_df=stations, right_df=districts, op='within')
+joined.head()
+# name bike_stands available_bikes geometry index_right id district_name population
+```
+
+#### Example 2: Make a Map of the Tree Density by District
+
+```python
+districts = gpd.read_file(DATA_PATH_PARIS+'paris_districts_utm.geojson')
+trees = gpd.read_file(DATA_PATH_PARIS+'paris_trees_small.gpkg')
+
+trees.head()
+#   species	    location_type	  geometry
+# 0	Marronnier	Alignement	    POINT (455834.122 5410780.606)
+# ...
+
+# 1. Add to each tree the district it belongs to
+joined = gpd.sjoin(left_df=trees,
+                   #right_df=districts[['district_name', 'geometry']],
+                   right_df=districts,
+                   op="within")
+joined.head()
+# species	location_type	geometry	index_right	id	district_name	population
+
+# 2. Calculate the number of trees in each district
+trees_by_district = joined.groupby('district_name').size()
+
+# 3. Convert the series to a DataFrame and specify column name
+trees_by_district = trees_by_district.to_frame(name='n_trees')
+trees_by_district.head()
+# n_trees   district_name	
+# Amérique	183
+# ...
+
+# 4. Merge the 'districts' and 'trees_by_district' dataframes
+districts_trees = pd.merge(left=districts,
+                           right=trees_by_district,
+                           on='district_name')
+
+# 5. Add a column with the tree density
+districts_trees['n_trees_per_area'] = (districts_trees.n_trees / districts_trees.geometry.area)*10**6
+
+# 6. Make of map of the districts colored by 'n_trees_per_area'
+districts_trees.plot(column='n_trees_per_area',
+                     legend=True,
+                     figsize=(7,7))
+
+```
 
 ## 3. Projecting and Transforming Geometries
 
@@ -172,9 +341,9 @@ plt.show()
 ## 4. Case Study: Artisanal Mining Sites
 
 
----
-
 ## 5. Building 2-Layer Maps
+
+:warning: **I made this section before the previous ones, but its contents are mostly contained in the previous ones.**
 
 In this section scatterplots and shapely geometry plots are combined to build 2-layer map visualizations.
 
@@ -290,6 +459,8 @@ plt.show()
 
 ## 6. Creating and Joining GeoDataFrames
 
+:warning: **I made this section before the previous ones, but its contents are mostly contained in the previous ones.**
+
 Besides Shapely geometry files, we have GeoJSON files, which can be read by Geopandas, too. They have these advantages:
 
 - They integrate everything in a JSON file.
@@ -345,6 +516,7 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 
 # Optional legend manipulation
+# https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.legend.html#matplotlib.pyplot.legend
 leg_kwds={'title':'District Number',
           'loc': 'upper left',
           'bbox_to_anchor':(1, 1.03),
