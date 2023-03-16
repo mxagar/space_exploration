@@ -11,3 +11,5 @@ __pycache__
 .ipynb_checkpoints
 space_image_classification/best_model.pt
 slides
+data/Paris_Urban_Atlas
+data/Donostia_Urban_Atlas
