@@ -678,6 +678,13 @@ print(land_use_district.groupby('class_2018')['area'].sum() / 1000**2)
 
 ## 4. Case Study: Artisanal Mining Sites
 
+In this section, a case study is analyzed: artisanal mining sites in Congo. The data set is from [IPIS: International Peace Service](https://ipisresearch.be). It contains information about the mines: location, minerals being mined, social insecurity situation. More information: [IPIS Open Data Tutorial](https://ipisresearch.be/wp-content/uploads/2018/03/Open_Data_Tutorial.html).
+
+New concepts/methods are introduced, too.
+
+**IMPORTANT**: This section has an associated notebook where I try the code snippets summarized here:
+
+[`lab/04_Case_Study_Mining.ipynb`](./lab/04_Case_Study_Mining.ipynb)
 
 
 ## 5. Building 2-Layer Maps
