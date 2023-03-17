@@ -608,6 +608,26 @@ land_use.shape # (5976, 12)
 
 ### 3.3 Overlaying Spatial Datasets
 
+The `gdf.intersection(geom)` operation is limited because 
+
+- we can instersct a `gdf` with a single polygon/geometry;
+- we get a `GeoSeries` without attributes, just geometries, i.e., we don't preserve the attributes.
+
+A more sophisticated alternative to `intersection` is `overlay`. When we perform this operation:
+
+- we use a `gdf` and overlay to it another `gdf`, not just a polygon/geometry;
+- we get `gdf` back with attributes and with all possible combinations of intersected geometries.
+
+Example: we have two `gdf`s, (1) European countries and (2) geological regions; when we apply
+
+```python
+gpd.overlay(countries, geological_regions, how='intersection')
+```
+
+we get more geometries than countries or geological regions (i.e., all possible intersection combinations), each with their attributes.
+
+![Intersection Overlay](./pics/intersection_overlay.jpg)
+
 
 
 ## 4. Case Study: Artisanal Mining Sites
