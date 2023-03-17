@@ -19,6 +19,8 @@ Finally, here are some interesting websites with datasets for practicing:
 
 - [European Urban Atlas](https://land.copernicus.eu/local/urban-atlas)
 - [US Energy Atlas](https://atlas.eia.gov/)
+- [IPIS Open Data](https://ipisresearch.be/home/maps-data/open-data/)
+- [World Resources Institute](https://www.wri.org/)
 
 Mikel Sagardia, 2023.  
 No guarantees.
@@ -680,11 +682,89 @@ print(land_use_district.groupby('class_2018')['area'].sum() / 1000**2)
 
 In this section, a case study is analyzed: artisanal mining sites in Congo. The data set is from [IPIS: International Peace Service](https://ipisresearch.be). It contains information about the mines: location, minerals being mined, social insecurity situation. More information: [IPIS Open Data Tutorial](https://ipisresearch.be/wp-content/uploads/2018/03/Open_Data_Tutorial.html).
 
+Links to explore the dataset source repositories:
+
+- [IPIS Open Data](https://ipisresearch.be/home/maps-data/open-data/)
+- [World Resources Institute](https://www.wri.org/)
+- [Open Africa](https://open.africa/dataset/democratic-republic-of-the-congo-protected-areas-2016/resource/29c269ba-6ab1-4718-a958-1873f5d80127)
+
 New concepts/methods are introduced, too.
 
 **IMPORTANT**: This section has an associated notebook where I try the code snippets summarized here:
 
 [`lab/04_Case_Study_Mining.ipynb`](./lab/04_Case_Study_Mining.ipynb)
+
+### 4.1 File Formats
+
+There are many file formats supported by Geopandas, with pros/cons:
+
+- ESRI Shapefiles: most extended, but distributed in several files, all necessary: `.shp`, `.dbf`, `shx`, `.prj`.
+- `GeoJSON`: lightweight, often used in web applications. 
+- GeoPackage: `.gpkg`, new, with more capabilities
+- ...
+- Geopandas can also read from geo-databases, like [PostGIS](https://postgis.net/), a spatial databse extender for PostgreSQL.
+
+Geopandas can read and write those files: `.to_file()`:
+
+```python
+# Writing a Shapefile file
+# Warning: several files created - all necessary!
+geodataframe.to_file("mydata.shp", driver='ESRI Shapefile')
+
+# Writing a GeoJSON file
+geodataframe.to_file("mydata.geojson", driver='GeoJSON')
+
+# Writing a GeoPackage file
+geodataframe.to_file("mydata.gpkg", driver='GPKG')
+```
+
+### 4.2 Explore the Dataset
+
+```python
+import geopandas as gpd
+import matplotlib.pyplot as plt
+
+DATA_PATH = "../../data/work_geodata/Mines/"
+
+# Read the mining site data
+mining_sites = gpd.read_file(DATA_PATH+"ipis_cod_mines.geojson")
+
+# Print the first rows and the CRS information
+mining_sites.head()
+#   visit_date	name	    n_workers	mineral	geometry
+# 0	2013-03-27	Mayi-Tatu	150.0	    Gold	  POINT (29.66033 1.01089)
+# ...
+mining_sites.shape # (2143, 5)
+print(mining_sites.crs) # epsg:4326
+
+# Make a quick visualisation
+mining_sites.plot(figsize=(10,10))
+
+# Read the Congo protected areas data
+protected_areas = gpd.read_file(DATA_PATH+"wdpamay2017cod-shapefile-polygons.geojson")
+
+# Convert both datasets to UTM projection
+mining_sites_utm = mining_sites.to_crs(epsg=32735)
+protected_areas_utm = protected_areas.to_crs(epsg=32735)
+
+# Visualize both datasets
+ax = protected_areas_utm.plot(color='orange',
+                              figsize=(10,10))
+mining_sites_utm.plot(ax=ax,
+                      markersize=5,
+                      column='mineral',
+                      #alpha=0.5,
+                      legend=True,
+                      legend_kwds={'loc':'upper left'})
+ax.set_axis_off()
+plt.show()
+
+# Write converted data to a file
+# Warning: With SHP, several files created - all necessary!
+mining_sites_utm.to_file(DATA_PATH+"ipis_cod_mines_utm.gpkg", driver='GPKG')
+protected_areas_utm.to_file(DATA_PATH+"cod_conservation_utm.shp", driver='ESRI Shapefile')
+```
+
 
 
 ## 5. Building 2-Layer Maps
