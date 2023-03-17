@@ -765,6 +765,144 @@ mining_sites_utm.to_file(DATA_PATH+"ipis_cod_mines_utm.gpkg", driver='GPKG')
 protected_areas_utm.to_file(DATA_PATH+"cod_conservation_utm.shp", driver='ESRI Shapefile')
 ```
 
+### 4.3 Additional Spatial Operations: Unary Union and Buffer
+
+We have seen many spatial operations:
+
+- Boolean spatial relationships: `intersects`, `within`, `contains`, etc. 
+- Geometry operations: `intersection`, `union`, `difference`, etc.
+- Spatial joins.
+- Combined geometries with overlay.
+
+There are other common spatial operations:
+
+- **Unary union**: given a `GeoSeries`, i.e., a colum/series of `geometry` objects, create a geometry that unites and contains all of them. Example: given all countries in a continent, create the polygon of the continent.
+- **Buffer**: given a geometry, create an *inflated* geometry which contains it witha a safety/distance margin. Example: create a 2km distance area around a river (a line).
+
+![Unary Union](./pics/unary_union.jpg)
+
+![Buffer](./pics/buffer.jpg)
+
+#### Example 1: National Park Area and Mines in 50 km around City of Goma
+
+```python
+from shapely.geometry import Point
+import geopandas as gpd
+
+goma = Point(746989.5594829298, 9816380.942287602)
+
+# goma is a Point: 746989.5594829298 9816380.942287602
+print(type(goma)) # shapely.geometry.point.Point
+
+# Create a buffer of 50km around Goma
+goma_buffer = goma.buffer(50000)
+
+# The buffer is a polygon
+print(type(goma_buffer)) # shapely.geometry.polygon.Polygon
+
+# Area of circle centered in Goma: pi*R^2
+print(goma_buffer.area / (1000**2)) # 7841.37
+
+# Check how many sites are located within the buffer
+mask = mining_sites_utm.within(goma_buffer)
+print(mask.sum()) # 87
+
+# Calculate the area of national park within the buffer
+print(protected_areas_utm.intersection(goma_buffer).geometry.area.sum() / (1000**2)) # 3894.84
+```
+
+#### Example 2: Mining Sites in National Parks
+
+```python
+protected_areas_utm.head()
+
+# Extract the single polygon for the Kahuzi-Biega National park
+kahuzi = protected_areas_utm[protected_areas_utm['NAME'] == "Kahuzi-Biega National park"].geometry.squeeze()
+
+# Take a subset of the mining sites located within Kahuzi
+sites_kahuzi = mining_sites_utm[mining_sites_utm.within(kahuzi)]
+print(sites_kahuzi)
+
+# Determine in which national park a mining site is located
+sites_within_park = gpd.sjoin(mining_sites_utm,
+                              protected_areas_utm,
+                              op='within',
+                              how='inner')
+
+sites_within_park.head()
+sites_within_park.shape # (68, 34)
+
+# The number of mining sites in each national park
+sites_within_park['NAME'].value_counts()
+# Itombwe                       21
+# Kahuzi-Biega                  11
+# Kahuzi-Biega National Park    10
+# Luama-Kivu                     9
+# Okapi                          5
+# Okapi Wildlife Reserve         5
+# Luama-Katanga                  3
+# Maiko                          3
+# Tayna                          1
+```
+
+### 4.4 Custom Spatial Operations
+
+We can use the available geometry operations to build custom functions that are applied to a `GeoSeries` using `GeoSeries.apply(function, **kwargs)`.
+
+For instance, image we want to measure the river length in an area of 50 km radius of the cities contained in a dataset:
+
+```python
+# Define the specific operation function
+def river_length(geom, rivers):
+    area = geom.buffer(50000)
+    rivers_within_area = rivers.intersection(area)
+    return rivers_within_area.length.sum() / 1000
+
+# The function works with a single geometry
+river_length(cairo, rivers=rivers) # 186.39
+
+# And it works with a GeoDataFrame geometry column or a GeoSeries
+# We can store the result as a column
+cities['river_length'] = cities.geometry.apply(river_length, rivers=rivers)
+```
+
+#### Example 1: Distance from Parks to Mines
+
+```python
+# Get the geometry of the first row
+single_mine = mining_sites_utm.geometry[0]
+
+# Calculate the distance from each national park to this mine
+dist = protected_areas_utm.distance(single_mine)
+
+# The index of the minimal distance
+idx = dist.idxmin()
+
+# Access the name of the corresponding national park
+closest_park = protected_areas_utm.loc[idx, 'NAME']
+print(closest_park) # Virunga
+```
+
+#### Example 2: Closest National Park from Each Mine
+
+```python
+# Define a function that returns the closest national park
+def closest_national_park(geom, national_parks):
+    dist = national_parks.distance(geom)
+    idx = dist.idxmin()
+    closest_park = national_parks.loc[idx, 'NAME']
+    return closest_park
+
+# Call the function on single_mine
+print(closest_national_park(single_mine, protected_areas_utm)) # Virunga
+
+# Apply the function to all mining sites
+mining_sites['closest_park'] = mining_sites.geometry.apply(closest_national_park, national_parks=protected_areas_utm)
+mining_sites.head()
+```
+
+
+### 4.5 Working with Raster Data
 
 
 ## 5. Building 2-Layer Maps
