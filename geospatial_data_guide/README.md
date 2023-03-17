@@ -901,8 +901,32 @@ mining_sites['closest_park'] = mining_sites.geometry.apply(closest_national_park
 mining_sites.head()
 ```
 
-
 ### 4.5 Working with Raster Data
+
+Rasterized data are pixel grids which can have several channels or **bands** with discrete or continuous values in them. Examples:
+
+- Satellite images (3 bands, continuous)
+- Rain probability map (1 band, continuous)
+- Elevation map (1 band, continuous)
+- Land usage raster map (1 band, discrete)
+
+The [GDAL](https://gdal.org/index.html) library contains state-of-the-art methods to deal with raster data. A pythonic binding to use GDAL is [RasterIO](https://rasterio.readthedocs.io/en/stable/intro.html). In this section, we'll use `rasterio` along with [`rasterstats`](https://pythonhosted.org/rasterstats/), which allows combining raster datasets with vector geometries.
+
+Links:
+
+- [RasterIO](https://rasterio.readthedocs.io/en/stable/intro.html)
+- [GDAL: Geospatial Data Abstraction Library](https://gdal.org/index.html)
+- [The Open Source Geospatial Foundation: OSGeo](https://www.osgeo.org/)
+- [rasterstats](https://pythonhosted.org/rasterstats/)
+
+Installation:
+
+```bash
+brew install gdal
+python -m pip install rasterio
+python -m pip install rasterstats
+```
+
 
 
 ## 5. Building 2-Layer Maps
