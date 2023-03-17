@@ -568,7 +568,12 @@ DATA_PATH = "../../data/Donostia_Urban_Atlas/Data/"
 land_use = gpd.read_file(DATA_PATH+'ES510L1_DONOSTIA_SAN_SEBASTIAN_UA2018_v013.gpkg')
 
 # Make a plot of the land use with 'class' as the color
-land_use.plot(column='class_2018', legend=True, figsize=(15, 10))
+# https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.legend.html#matplotlib.pyplot.legend
+land_use.plot(column='class_2018',
+              legend=True, 
+              figsize=(15, 10),
+              legend_kwds={'loc': 'lower right',
+                           'bbox_to_anchor': (1.7, 0.1)})
 plt.show()
 
 # Add the area as a new column
@@ -628,9 +633,51 @@ we get more geometries than countries or geological regions (i.e., all possible 
 
 ![Intersection Overlay](./pics/intersection_overlay.jpg)
 
+#### Example 1: Intersection Overlay in San Sebastian
 
+```python
+# Import the districts dataset
+# https://www.donostia.eus/datosabiertos/dataset/mapa_auzoak/resource/1ae83785-b6ac-466f-9548-0834143967fc?view_id=4eea417c-3f47-407d-bb7d-c7e1cfaeec2b
+districts = gpd.read_file(DATA_PATH+'donostia_auzoak.json')
+districts.head()
+
+districts.shape # (20, 4)
+land_use.shape # (5976, 12)
+
+# Transform to the same CRS
+districts = districts.to_crs(crs=land_use.crs)
+
+# Overlay both datasets based on the intersection
+combined = gpd.overlay(land_use, districts, how='intersection')
+
+combined.head()
+combined.shape # (2243, 15)
+```
+
+#### Example 2: Intersection Inspection
+
+```python
+# Add the area as a column
+combined['area'] = combined.geometry.area
+
+# Take a subset for the one district
+land_use_district = combined[combined.name == "IGELDO"]
+
+# Visualize the land use of the selected district
+# https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.legend.html#matplotlib.pyplot.legend
+land_use_district.plot(column = 'class_2018', 
+                       figsize=(10,10),
+                       legend=True,
+                       legend_kwds={'loc': 'lower right',
+                                   'bbox_to_anchor': (1.7, 0.1)})
+plt.show()
+
+# Calculate the total area for each land use class
+print(land_use_district.groupby('class_2018')['area'].sum() / 1000**2)
+```
 
 ## 4. Case Study: Artisanal Mining Sites
+
 
 
 ## 5. Building 2-Layer Maps
