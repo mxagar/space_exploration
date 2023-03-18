@@ -483,7 +483,7 @@ print(districts.crs)
 
 # If a geodataframe has no CRS, we get {}
 # We can add manually a CRS as follows
-gdf.crs = {'init': 'epsg:4326'}
+gdf.crs = {'init': 'epsg:4326'} # 'epsg:4326'
 
 # We can convert a geodataframe to another CRS as follows
 districts = districts.to_crs(epsg = 3857)
@@ -522,7 +522,7 @@ restaurants = gpd.GeoDataFrame(restaurants,
 print(restaurants.crs) # None
 # Restaurants are in the Web Mercator CRS
 # Set it manually
-restaurants.crs = {'init': 'epsg:3857'}
+restaurants.crs = {'init': 'epsg:3857'} # 'epsg:3857'
 
 # Extract the single Point
 eiffel_tower = s_eiffel_tower_projected[0]
@@ -927,7 +927,105 @@ python -m pip install rasterio
 python -m pip install rasterstats
 ```
 
+#### Example 1: Visualize Raster Images + Vector Geometries
 
+```python
+import rasterio
+import rasterio.plot
+from shapely.geometry import Point
+import geopandas as gpd
+import matplotlib.pyplot as plt
+
+DATA_PATH = "../../data/work_geodata/Madagascar_27_01_2020/"
+
+# Open the raster dataset
+# HOWEVER, only the metadata is loaded
+# and we can access all the metadata attributes with .
+src = rasterio.open(DATA_PATH+"2020-01-27-00_00_2020-01-27-23_59_Landsat_8_(USGS_archive)_B01_(Raw).tiff")
+
+# Visualize
+ax = rasterio.plot.show(src)
+
+print(src.crs) # EPSG:4326
+src.count # number of bands, 1
+src.width, src.height # (676, 602)
+
+# Get numpy array of raster image
+array = src.read()
+array.shape # (1, 602, 676)
+src.bounds # bbox
+src.offsets
+src.res # resolution, (0.0005393624260355052, 0.0005197591362126263)
+src.transform
+# Affine(0.0005393624260355052, 0.0, 46.933594,
+#        0.0, -0.0005197591362126263, -15.278872)
+
+from shapely import Polygon
+from shapely.geometry import box
+
+# Create a GeoSeries of points located on the raster image region
+pt1 = Point(47.05, -15.40)
+pt2 = Point(47.15, -15.45)
+pt3 = Point(47.25, -15.30)
+# For more information on how to create Shapely objects
+# https://shapely.readthedocs.io/en/stable/manual.html
+rectangle = box(minx=46.95, miny=-15.58, maxx=47.28, maxy=-15.28, ccw=True)
+
+#shapes = gpd.GeoSeries([pt1, pt2, pt3, rectangle], crs = {'init':  'epsg:4326'})
+#shapes = gpd.GeoSeries([pt1, pt2, pt3], crs = {'init':  'epsg:4326'})
+shapes = gpd.GeoSeries([pt1, pt2, pt3], crs = 'epsg:4326')
+
+shapes
+# 0    POINT (47.05000 -15.40000)
+# 1    POINT (47.15000 -15.45000)
+# 2    POINT (47.25000 -15.30000)
+
+print(shapes.crs) # epsg:4326
+
+# Plot both: raster image + vector geometries
+# WARNING: Even though both are in the same CRS and have overlapping coordinates
+# they're not plotted together...
+plt.figure(figsize=(10,10))
+ax = rasterio.plot.show(src)
+shapes.plot(ax=ax, markersize=20, color='red')
+#shapes.plot(markersize=10, color='red')
+plt.show()
+
+```
+
+#### Example 2: Extract Information from Raster
+
+This example broke the kernel, so I'm just writing the snippets from the slides:
+
+**Extract raster values with rasterstats**
+
+*From points:*
+
+```python
+import rasterstats
+
+rasterstats.point_query(geometries, "path/to/raster",
+                        interpolation='nearest'|'bilinear')
+```
+
+*From polygons:*
+
+```python
+import rasterstats
+rasterstats.zonal_stats(geometries, "path/to/raster",
+                        stats=['min', 'mean', 'max'])
+```
+
+*Example:*
+
+```python
+import rasterstats
+
+result = rasterstats.zonal_stats(countries.geometry, "DEM_gworld.tif",
+                                 stats=['mean'])
+countries['mean_elevation'] = pd.DataFrame(result)
+countries.sort_values('mean_elevation', ascending=False).head()
+```
 
 ## 5. Building 2-Layer Maps
 
@@ -1149,7 +1247,7 @@ schools['geometry'] = schools.apply(lambda x: Point((x.Longitude, x.Latitude)), 
 
 # Construct a geo-dataframe
 # schools_geo seems to be the same as schools, but it's another data structure
-schools_crs = {'init':  'epsg:4326'}
+schools_crs = {'init':  'epsg:4326'} # 'epsg:4326'
 schools_geo = gpd.GeoDataFrame(schools,
                                crs = schools_crs,
                                geometry = schools.geometry)
