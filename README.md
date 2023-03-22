@@ -14,7 +14,7 @@ Each mini-project has a dedicated folder with a `README.md`. Datasets should be 
 
 ## Requirements
 
-The notebooks can be opened with Google Colab (link provided in each notebook) or in a dedicated environment. A brief recipe to set one up using [conda](https://docs.conda.io/en/latest/) is the following:
+The notebooks can be opened with Google Colab (if link provided in each notebook) or in a dedicated environment. A brief recipe to set one up using [conda](https://docs.conda.io/en/latest/) is the following:
 
 ```bash
 # Create and activate e
