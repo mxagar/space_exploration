@@ -14,17 +14,17 @@ No guarantees.
 
 ## Notebooks
 
-- [`00_Image_Manipulation`]()
+- [`00_ImageManipulation.ipynb`](./00_ImageManipulation.ipynb): basics of image manipulation are shown.
 - [`01_Classification.ipynb`](./01_Classification.ipynb): pixels of images with 12 bands are classified given the ground truth labels (6 categories).
-- [`02_Clustering_DimensionalityReduction.ipynb`](./02_Clustering_DimensionalityReduction.ipynb)
-- [`03_Band_Analysis.ipynb`](./03_DimensionalityReduction.ipynb)
+- [`02_Clustering_DimensionalityReduction.ipynb`](./02_Clustering_DimensionalityReduction.ipynb): 
+- [`03_Band_Analysis.ipynb`](./03_Band_Analysis.ipynb): Sentinel-2 bands are combined to obtain relevant geological and vegetation features.
 
 ## Sentinel-2 Band Explanation
 
 Sentinel-2 consists of 2 satellites (Sentinel 2A and 2B). Sentinel-2 carries the Multispectral Imager (MSI). This sensor delivers 13 spectral bands ranging from 10 to 60-meter pixel size.
 
 | Band | Resolution | Central Wavelength | Description |
-| - | - | - | - | - | 
+| --- | --- | --- | --- | --- | 
 | B1 | 60 m | 443 nm| Ultra Blue (Coastal and Aerosol) |
 | B2 | 10 m | 490 nm | Blue |
 | B3 | 10 m | 560 nm | Green |
@@ -61,6 +61,21 @@ Important band combinations:
     - Low values: urban, water.
 - Moisture Index: (B8A-B11)/(B8A+B11).
     - Water stress in plants if low value.
+
+Additional exemplary indices are obtained and visualized in [`03_Band_Analysis.ipynb`](./03_Band_Analysis.ipynb):
+
+- Vegetation and Soil Indices
+    - Normalized Difference Vegetation Index (NDVI)
+    - Soil-Adjusted Vegetation Index (SAVI)
+    - Visible Atmospherically Resistant Index (VARI)
+    - Distribution of NDVI, SAVI, and VARI pixel values
+- Water Indices
+    - Modified Normalized Difference Water Index (MNDWI)
+    - Normalized Difference Moisture Index (NDMI)
+- Geology Indices
+    - Clay Minerals
+    - Ferrous Minerals
+
 
 More information:
 
