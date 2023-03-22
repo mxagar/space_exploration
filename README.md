@@ -6,10 +6,11 @@ Each mini-project has a dedicated folder with a `README.md`. Datasets should be 
 
 ## Contents
 
-- [`space_image_classification`](./space_image_classification/): CNN which classifies space images from  [Satellite Image Classification](https://www.kaggle.com/datasets/mahmoudreda55/satellite-image-classification).
+- [`space_image_classification`](./space_image_classification/): CNN which classifies space images from  [Satellite Image Classification](https://www.kaggle.com/datasets/mahmoudreda55/satellite-image-classification); RBG images are used and the classification is per image.
 - [`geospatial_data_guide`](./geospatial_data_guide/): a guide on how to visualize and work with geospatial data, based on two courses from Datacamp:
   - [Visualizing Geospatial Data in Python](https://app.datacamp.com/learn/courses/visualizing-geospatial-data-in-python)
   - [Working with Geospatial Data in Python](https://app.datacamp.com/learn/courses/working-with-geospatial-data-in-python)
+- [`satellite_image_analysis`](./satellite_image_analysis): classification, clustering and dimensionality reduction examples with satellite images; images with several bands (channels) are processed and the ML techniques are applied pixel-wise. The examples come originally from [syamkakarla98/Satellite_Imagery_Analysis](https://github.com/syamkakarla98/Satellite_Imagery_Analysis).
 
 ## Requirements
 
@@ -29,4 +30,4 @@ pip install -r requirements.txt
 Mikel Sagardia, 2023.  
 No guarantees.
 
-If you find this repository useful and use it, please, cite the original source.
+If you find this repository useful and use it, please, cite the original source. This work is protected by the  GPL-3.0 license; see [`LICENSE.md`](LICENSE.md) for more information.
