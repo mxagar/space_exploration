@@ -504,7 +504,7 @@ districts = districts.to_crs(epsg = 3857)
 # To make sure we correctly transform two geodataframes to the same CRS
 gdf1 = geopandas.read_file(...)
 gdf2 = geopandas.read_file(...)
-gdf2 = df2.to_crs(gdf1.crs)
+gdf2 = gdf2.to_crs(gdf1.crs)
 ```
 
 #### Example 2: Create a Point and Transform Its CRS
